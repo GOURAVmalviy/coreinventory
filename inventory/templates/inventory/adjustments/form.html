@@ -1,0 +1,27 @@
+{% extends 'inventory/base.html' %}
+{% block title %}{{ title }} — CoreInventory{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="action-bar">
+  <a href="{% url 'adjustment_list' %}" class="btn">← Back to Adjustments</a>
+</div>
+<div class="card" style="max-width:520px;">
+  <div class="alert alert-info" style="margin-bottom:20px;">
+    Select a product and warehouse, then enter the <strong>actual counted quantity</strong>. The system will calculate the difference and update stock automatically.
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+      {{ field }}
+      {% if field.errors %}<div class="error-msg">{{ field.errors.0 }}</div>{% endif %}
+    </div>
+    {% endfor %}
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button type="submit" class="btn btn-primary">Save Adjustment</button>
+      <a href="{% url 'adjustment_list' %}" class="btn">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

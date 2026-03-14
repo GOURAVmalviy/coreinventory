@@ -1,0 +1,79 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Settings — CoreInventory{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+
+  <!-- Warehouses -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Warehouses & Locations</div>
+    </div>
+    {% for wh in warehouses %}
+    <div class="wh-card">
+      <div>
+        <div style="font-size:13px;font-weight:500;">{{ wh.name }}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px;">{{ wh.location }}</div>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="toggle_warehouse">
+        <input type="hidden" name="wh_id" value="{{ wh.pk }}">
+        <button type="submit" class="toggle {% if wh.is_active %}toggle-on{% else %}toggle-off{% endif %}" title="{% if wh.is_active %}Deactivate{% else %}Activate{% endif %}">
+          <div class="knob"></div>
+        </button>
+      </form>
+    </div>
+    {% empty %}
+    <div class="muted" style="padding:12px 0;font-size:13px;">No warehouses yet.</div>
+    {% endfor %}
+
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+      <div class="section-title">Add Warehouse</div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_warehouse">
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+          {% for field in wh_form %}
+          {% if field.name != 'is_active' %}
+          <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="error-msg">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top:12px;">Add Warehouse</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Product Categories -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Product Categories</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+      {% for cat in categories %}
+      <span style="padding:4px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2);">{{ cat.name }}</span>
+      {% empty %}
+      <div class="muted" style="font-size:13px;">No categories yet.</div>
+      {% endfor %}
+    </div>
+    <div style="padding-top:16px;border-top:1px solid var(--border);">
+      <div class="section-title">Add Category</div>
+      <form method="post" style="display:flex;gap:8px;align-items:flex-end;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_category">
+        <div class="form-group" style="flex:1;">
+          <label>Category Name</label>
+          <input type="text" name="cat_name" placeholder="e.g. Raw Material">
+        </div>
+        <button type="submit" class="btn btn-primary">Add</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

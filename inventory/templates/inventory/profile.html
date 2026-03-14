@@ -1,0 +1,44 @@
+{% extends 'inventory/base.html' %}
+{% block title %}My Profile — CoreInventory{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block content %}
+<div style="max-width:480px;">
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-light);color:var(--accent-dark);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;">
+        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% if not user.first_name %}{{ user.username|first|upper }}{% endif %}
+      </div>
+      <div>
+        <div style="font-size:16px;font-weight:600;">{{ user.get_full_name|default:user.username }}</div>
+        <div style="font-size:12px;color:var(--text3);">{{ user.email|default:"No email set" }}</div>
+      </div>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" name="first_name" value="{{ user.first_name }}">
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" name="last_name" value="{{ user.last_name }}">
+        </div>
+        <div class="form-group full">
+          <label>Email</label>
+          <input type="email" name="email" value="{{ user.email }}">
+        </div>
+        <div class="form-group full">
+          <label>Username</label>
+          <input type="text" value="{{ user.username }}" disabled style="background:var(--surface2);color:var(--text3);">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'otp_request' %}" class="btn">Change Password</a>
+        <a href="{% url 'logout' %}" class="btn btn-danger" style="margin-left:auto;">Sign Out</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

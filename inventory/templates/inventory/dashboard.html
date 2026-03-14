@@ -1,0 +1,145 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Dashboard — CoreInventory{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'receipt_create' %}" class="btn btn-primary">+ New Receipt</a>
+  <a href="{% url 'delivery_create' %}" class="btn">+ New Delivery</a>
+{% endblock %}
+
+{% block content %}
+<!-- KPIs -->
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-label">Total Products</div>
+    <div class="kpi-value">{{ total_products }}</div>
+    <span class="kpi-badge badge-ok">Active</span>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Low Stock</div>
+    <div class="kpi-value">{{ low_stock|length }}</div>
+    <span class="kpi-badge badge-warn">Warning</span>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Out of Stock</div>
+    <div class="kpi-value">{{ out_of_stock|length }}</div>
+    <span class="kpi-badge badge-danger">Critical</span>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Pending Receipts</div>
+    <div class="kpi-value">{{ pending_receipts }}</div>
+    <span class="kpi-badge badge-info">Pending</span>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Pending Deliveries</div>
+    <div class="kpi-value">{{ pending_deliveries }}</div>
+    <span class="kpi-badge badge-info">Pending</span>
+  </div>
+</div>
+
+<!-- Alerts -->
+{% if out_of_stock %}
+<div class="alert alert-danger">
+  <strong>Out of stock:</strong>
+  {% for p in out_of_stock %}<a href="{% url 'product_list' %}" style="color:inherit;font-weight:500;">{{ p.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+</div>
+{% endif %}
+{% if low_stock %}
+<div class="alert alert-warn">
+  <strong>Low stock alert:</strong>
+  {% for p in low_stock %}{{ p.name }} ({{ p.total_stock }} {{ p.unit_of_measure }}){% if not forloop.last %}, {% endif %}{% endfor %}
+</div>
+{% endif %}
+
+<!-- Recent Activity Filters -->
+<div class="filters">
+  <span style="font-size:12px;color:var(--text3);font-weight:500;">Filter:</span>
+  <a class="filter-chip {% if filter_type == 'all' %}active{% endif %}" href="?type=all">All</a>
+  <a class="filter-chip {% if filter_type == 'receipts' %}active{% endif %}" href="?type=receipts">Receipts</a>
+  <a class="filter-chip {% if filter_type == 'deliveries' %}active{% endif %}" href="?type=deliveries">Deliveries</a>
+  <a class="filter-chip {% if filter_type == 'transfers' %}active{% endif %}" href="?type=transfers">Transfers</a>
+</div>
+
+<!-- Operations Table -->
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Reference</th>
+        <th>Type</th>
+        <th>Party / Route</th>
+        <th>Products</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if filter_type == 'all' or filter_type == 'receipts' %}
+        {% for r in recent_receipts %}
+        <tr>
+          <td class="mono">{{ r.ref }}</td>
+          <td><span class="kpi-badge badge-ok" style="font-size:10px;">Receipt</span></td>
+          <td>{{ r.supplier }} → {{ r.warehouse.name }}</td>
+          <td>{{ r.lines.count }} product(s)</td>
+          <td><span class="pill pill-{{ r.status }}">{{ r.get_status_display }}</span></td>
+          <td class="muted" style="font-size:12px;">{{ r.created_at|date:"d M Y" }}</td>
+          <td><a href="{% url 'receipt_detail' r.pk %}" class="btn btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      {% endif %}
+      {% if filter_type == 'all' or filter_type == 'deliveries' %}
+        {% for d in recent_deliveries %}
+        <tr>
+          <td class="mono">{{ d.ref }}</td>
+          <td><span class="kpi-badge badge-info" style="font-size:10px;">Delivery</span></td>
+          <td>{{ d.warehouse.name }} → {{ d.customer }}</td>
+          <td>{{ d.lines.count }} product(s)</td>
+          <td><span class="pill pill-{{ d.status }}">{{ d.get_status_display }}</span></td>
+          <td class="muted" style="font-size:12px;">{{ d.created_at|date:"d M Y" }}</td>
+          <td><a href="{% url 'delivery_detail' d.pk %}" class="btn btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      {% endif %}
+      {% if filter_type == 'all' or filter_type == 'transfers' %}
+        {% for t in recent_transfers %}
+        <tr>
+          <td class="mono">{{ t.ref }}</td>
+          <td><span class="kpi-badge badge-warn" style="font-size:10px;">Transfer</span></td>
+          <td>{{ t.from_warehouse.name }} → {{ t.to_warehouse.name }}</td>
+          <td>{{ t.lines.count }} product(s)</td>
+          <td><span class="pill pill-{{ t.status }}">{{ t.get_status_display }}</span></td>
+          <td class="muted" style="font-size:12px;">{{ t.created_at|date:"d M Y" }}</td>
+          <td><a href="{% url 'transfer_detail' t.pk %}" class="btn btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      {% endif %}
+      {% if not recent_receipts and not recent_deliveries and not recent_transfers %}
+      <tr><td colspan="7" class="empty">No recent operations. <a href="{% url 'receipt_create' %}" style="color:var(--accent);">Create your first receipt</a>.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Recent Ledger -->
+{% if recent_ledger %}
+<div style="margin-top:24px;">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Recent Stock Movements</div><a href="{% url 'move_history' %}" class="btn btn-sm">View all</a></div>
+    <div style="padding:0 4px;">
+      {% for entry in recent_ledger %}
+      <div class="ledger-row">
+        <div class="ledger-dot dot-{{ entry.move_type }}"></div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;">{{ entry.get_move_type_display }} · <span class="mono" style="font-weight:400;">{{ entry.reference }}</span></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px;">{{ entry.product.name }} — {{ entry.warehouse.name }} — {{ entry.note }}</div>
+        </div>
+        <div class="ledger-qty {% if entry.quantity > 0 %}qty-pos{% elif entry.quantity < 0 %}qty-neg{% else %}qty-zero{% endif %}">
+          {% if entry.quantity > 0 %}+{% endif %}{{ entry.quantity }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

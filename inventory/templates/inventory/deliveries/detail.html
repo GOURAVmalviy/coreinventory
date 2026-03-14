@@ -1,0 +1,52 @@
+{% extends 'inventory/base.html' %}
+{% block title %}{{ delivery.ref }} — CoreInventory{% endblock %}
+{% block page_title %}{{ delivery.ref }}{% endblock %}
+{% block content %}
+<div class="action-bar">
+  <a href="{% url 'delivery_list' %}" class="btn">← Deliveries</a>
+  <span class="pill pill-{{ delivery.status }}" style="margin-left:4px;">{{ delivery.get_status_display }}</span>
+  {% if delivery.status in 'draft,waiting,ready' %}
+  <form method="post" action="{% url 'delivery_validate' delivery.pk %}" style="margin-left:auto;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary" onclick="return confirm('Validate delivery? Stock will be reduced.')">✓ Validate Delivery</button>
+  </form>
+  {% endif %}
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+  <div class="card">
+    <div class="section-title">Delivery Information</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="detail-field"><span class="label">Reference</span><span class="value mono">{{ delivery.ref }}</span></div>
+      <div class="detail-field"><span class="label">Status</span><span class="value"><span class="pill pill-{{ delivery.status }}">{{ delivery.get_status_display }}</span></span></div>
+      <div class="detail-field"><span class="label">Customer</span><span class="value">{{ delivery.customer }}</span></div>
+      <div class="detail-field"><span class="label">Warehouse</span><span class="value">{{ delivery.warehouse.name }}</span></div>
+      <div class="detail-field"><span class="label">Scheduled Date</span><span class="value">{{ delivery.scheduled_date|date:"d M Y" }}</span></div>
+      <div class="detail-field"><span class="label">Created By</span><span class="value">{{ delivery.created_by.get_full_name|default:delivery.created_by.username|default:"—" }}</span></div>
+      {% if delivery.validated_at %}
+      <div class="detail-field"><span class="label">Validated At</span><span class="value">{{ delivery.validated_at|date:"d M Y H:i" }}</span></div>
+      {% endif %}
+      {% if delivery.notes %}
+      <div class="detail-field" style="grid-column:1/-1;"><span class="label">Notes</span><span class="value">{{ delivery.notes }}</span></div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title">Products</div>
+    <table style="width:100%;">
+      <thead><tr><th>Product</th><th>SKU</th><th>Demand</th><th>Done</th></tr></thead>
+      <tbody>
+        {% for line in delivery.lines.all %}
+        <tr>
+          <td>{{ line.product.name }}</td>
+          <td class="mono muted">{{ line.product.sku }}</td>
+          <td>{{ line.demand_qty }} {{ line.product.unit_of_measure }}</td>
+          <td>{{ line.done_qty }} {{ line.product.unit_of_measure }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="muted" style="padding:12px;">No products added.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

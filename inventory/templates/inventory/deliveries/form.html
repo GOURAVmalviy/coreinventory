@@ -1,0 +1,69 @@
+{% extends 'inventory/base.html' %}
+{% block title %}{{ title }} — CoreInventory{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="action-bar">
+  <a href="{% url 'delivery_list' %}" class="btn">← Back to Deliveries</a>
+</div>
+<form method="post">
+  {% csrf_token %}
+  <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start;">
+    <div class="card">
+      <div class="section-title">Delivery Details</div>
+      <div class="form-grid">
+        {% for field in form %}
+        <div class="form-group {% if field.name == 'notes' %}full{% endif %}">
+          <label>{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+          {{ field }}
+          {% if field.errors %}<div class="error-msg">{{ field.errors.0 }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Products</div>
+      {{ formset.management_form }}
+      <div id="formset-container">
+        {% for f in formset %}
+        <div class="formset-row" id="row-{{ forloop.counter0 }}">
+          <div class="form-group">
+            <label>Product</label>{{ f.product }}
+          </div>
+          <div class="form-group">
+            <label>Demand</label>{{ f.demand_qty }}
+          </div>
+          <div class="form-group">
+            <label>Done</label>{{ f.done_qty }}
+          </div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:2px;">
+            {% if f.DELETE %}{{ f.DELETE }}{% endif %}{{ f.id }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="btn btn-sm formset-add" onclick="addFormsetRow()">+ Add Product</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:16px;">
+    <button type="submit" class="btn btn-primary">Save Delivery</button>
+    <a href="{% url 'delivery_list' %}" class="btn">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+var total = parseInt(document.getElementById('id_lines-TOTAL_FORMS').value);
+function addFormsetRow(){
+  var container = document.getElementById('formset-container');
+  var first = container.querySelector('.formset-row');
+  if(!first) return;
+  var html = first.innerHTML.replace(/lines-0-/g,'lines-'+total+'-').replace(/lines-\d+-/g,'lines-'+total+'-');
+  var div = document.createElement('div');
+  div.className = 'formset-row';
+  div.innerHTML = html;
+  div.querySelectorAll('input,select').forEach(function(el){ el.value=''; });
+  container.appendChild(div);
+  document.getElementById('id_lines-TOTAL_FORMS').value = ++total;
+}
+</script>
+{% endblock %}

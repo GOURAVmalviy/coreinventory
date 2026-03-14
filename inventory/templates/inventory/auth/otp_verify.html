@@ -1,0 +1,24 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Verify OTP — CoreInventory{% endblock %}
+{% block auth_content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">CoreInventory</div>
+    <div class="auth-sub">Enter the OTP sent to your email</div>
+    {% for msg in messages %}<div class="alert alert-{{ msg.tags }}">{{ msg }}</div>{% endfor %}
+    <form method="post" class="auth-form">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="error-msg">{{ field.errors.0 }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>{% endif %}
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:20px;justify-content:center;padding:10px;">Reset Password</button>
+    </form>
+    <div class="auth-footer"><a href="{% url 'otp_request' %}">Request new OTP</a></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Stock Adjustments — CoreInventory{% endblock %}
+{% block page_title %}Stock Adjustments{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'adjustment_create' %}" class="btn btn-primary">+ New Adjustment</a>
+{% endblock %}
+{% block content %}
+<div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Reference</th><th>Product</th><th>Warehouse</th><th>Recorded</th><th>Counted</th><th>Difference</th><th>Reason</th><th>Date</th>
+    </tr></thead>
+    <tbody>
+      {% for adj in adjustments %}
+      <tr>
+        <td class="mono">{{ adj.ref }}</td>
+        <td>{{ adj.product.name }}</td>
+        <td>{{ adj.warehouse.name }}</td>
+        <td>{{ adj.recorded_qty }} {{ adj.product.unit_of_measure }}</td>
+        <td>{{ adj.counted_qty }} {{ adj.product.unit_of_measure }}</td>
+        <td>
+          {% if adj.difference > 0 %}
+            <span style="color:var(--success);font-weight:600;">+{{ adj.difference }}</span>
+          {% elif adj.difference < 0 %}
+            <span style="color:var(--danger);font-weight:600;">{{ adj.difference }}</span>
+          {% else %}
+            <span class="muted">±0</span>
+          {% endif %}
+        </td>
+        <td class="muted" style="font-size:12px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ adj.reason|default:"—" }}</td>
+        <td class="muted" style="font-size:12px;">{{ adj.created_at|date:"d M Y" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="empty">No adjustments recorded. <a href="{% url 'adjustment_create' %}" style="color:var(--accent);">Create one</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

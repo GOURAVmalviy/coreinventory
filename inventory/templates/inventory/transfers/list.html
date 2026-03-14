@@ -1,0 +1,36 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Transfers — CoreInventory{% endblock %}
+{% block page_title %}Internal Transfers{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'transfer_create' %}" class="btn btn-primary">+ New Transfer</a>
+{% endblock %}
+{% block content %}
+<div class="filters">
+  <a class="filter-chip {% if not status %}active{% endif %}" href="{% url 'transfer_list' %}">All</a>
+  <a class="filter-chip {% if status == 'draft' %}active{% endif %}" href="?status=draft">Draft</a>
+  <a class="filter-chip {% if status == 'ready' %}active{% endif %}" href="?status=ready">Ready</a>
+  <a class="filter-chip {% if status == 'done' %}active{% endif %}" href="?status=done">Done</a>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Reference</th><th>From</th><th>To</th><th>Lines</th><th>Status</th><th>Scheduled</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% for t in transfers %}
+      <tr>
+        <td class="mono">{{ t.ref }}</td>
+        <td>{{ t.from_warehouse.name }}</td>
+        <td>{{ t.to_warehouse.name }}</td>
+        <td>{{ t.lines.count }}</td>
+        <td><span class="pill pill-{{ t.status }}">{{ t.get_status_display }}</span></td>
+        <td class="muted" style="font-size:12px;">{{ t.scheduled_date|date:"d M Y" }}</td>
+        <td><a href="{% url 'transfer_detail' t.pk %}" class="btn btn-sm">View</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="empty">No transfers. <a href="{% url 'transfer_create' %}" style="color:var(--accent);">Create one</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

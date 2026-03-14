@@ -1,0 +1,39 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Receipts — CoreInventory{% endblock %}
+{% block page_title %}Receipts{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'receipt_create' %}" class="btn btn-primary">+ New Receipt</a>
+{% endblock %}
+{% block content %}
+<div class="filters">
+  <a class="filter-chip {% if not status %}active{% endif %}" href="{% url 'receipt_list' %}">All</a>
+  <a class="filter-chip {% if status == 'draft' %}active{% endif %}" href="?status=draft">Draft</a>
+  <a class="filter-chip {% if status == 'waiting' %}active{% endif %}" href="?status=waiting">Waiting</a>
+  <a class="filter-chip {% if status == 'ready' %}active{% endif %}" href="?status=ready">Ready</a>
+  <a class="filter-chip {% if status == 'done' %}active{% endif %}" href="?status=done">Done</a>
+  <a class="filter-chip {% if status == 'canceled' %}active{% endif %}" href="?status=canceled">Canceled</a>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Reference</th><th>Supplier</th><th>Warehouse</th><th>Lines</th><th>Status</th><th>Scheduled</th><th>Created</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% for r in receipts %}
+      <tr>
+        <td class="mono">{{ r.ref }}</td>
+        <td>{{ r.supplier }}</td>
+        <td>{{ r.warehouse.name }}</td>
+        <td>{{ r.lines.count }}</td>
+        <td><span class="pill pill-{{ r.status }}">{{ r.get_status_display }}</span></td>
+        <td class="muted" style="font-size:12px;">{{ r.scheduled_date|date:"d M Y" }}</td>
+        <td class="muted" style="font-size:12px;">{{ r.created_at|date:"d M Y" }}</td>
+        <td><a href="{% url 'receipt_detail' r.pk %}" class="btn btn-sm">View</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="empty">No receipts found. <a href="{% url 'receipt_create' %}" style="color:var(--accent);">Create one</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

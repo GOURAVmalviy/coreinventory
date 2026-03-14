@@ -1,0 +1,50 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Products — CoreInventory{% endblock %}
+{% block page_title %}Products{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'product_create' %}" class="btn btn-primary">+ Add Product</a>
+{% endblock %}
+{% block content %}
+<div class="filters">
+  <form method="get" style="display:flex;gap:8px;align-items:center;flex:1;flex-wrap:wrap;">
+    {% for c in categories %}
+    <a class="filter-chip {% if cat == c.id|stringformat:'s' %}active{% endif %}" href="?cat={{ c.id }}{% if q %}&q={{ q }}{% endif %}">{{ c.name }}</a>
+    {% endfor %}
+    <a class="filter-chip {% if not cat %}active{% endif %}" href="{% url 'product_list' %}{% if q %}?q={{ q }}{% endif %}">All</a>
+    <input type="text" name="q" class="search-input" placeholder="Search name or SKU…" value="{{ q }}" {% if cat %}onchange="this.form.submit()"{% endif %}>
+    {% if cat %}<input type="hidden" name="cat" value="{{ cat }}">{% endif %}
+  </form>
+</div>
+
+{% if products %}
+<div class="prod-grid">
+  {% for p in products %}
+  <div class="prod-card">
+    <div class="prod-icon">📦</div>
+    <div class="prod-name">{{ p.name }}</div>
+    <div class="prod-sku">{{ p.sku }}{% if p.category %} · {{ p.category.name }}{% endif %}</div>
+    {% with total=p.total_stock %}
+    <div class="stock-val {% if total == 0 %}stock-out{% elif p.is_low_stock %}stock-low{% else %}stock-ok{% endif %}">
+      {{ total }} <span style="font-size:14px;font-weight:400;">{{ p.unit_of_measure }}</span>
+    </div>
+    <div class="stock-label muted">
+      {% if total == 0 %}Out of stock{% elif p.is_low_stock %}Low stock (min: {{ p.min_stock }}){% else %}In stock{% endif %}
+    </div>
+    {% endwith %}
+    {% if p.stock_locations.all %}
+    <div class="prod-locations">
+      {% for loc in p.stock_locations.all %}
+      <div class="loc-row"><span>{{ loc.warehouse.name }}</span><span style="font-weight:500;color:var(--text);">{{ loc.quantity }}</span></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div style="margin-top:10px;">
+      <a href="{% url 'product_edit' p.pk %}" class="btn btn-sm" style="width:100%;justify-content:center;">Edit</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No products found</div><a href="{% url 'product_create' %}" class="btn btn-primary" style="margin-top:12px;">Add your first product</a></div>
+{% endif %}
+{% endblock %}

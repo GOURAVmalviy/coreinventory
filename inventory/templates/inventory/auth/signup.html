@@ -1,0 +1,23 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Create Account — CoreInventory{% endblock %}
+{% block auth_content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">CoreInventory</div>
+    <div class="auth-sub">Create your account</div>
+    <form method="post" class="auth-form">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="error-msg">{{ field.errors.0 }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>{% endif %}
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:20px;justify-content:center;padding:10px;">Create Account</button>
+    </form>
+    <div class="auth-footer"><a href="{% url 'login' %}">Already have an account? Sign in</a></div>
+  </div>
+</div>
+{% endblock %}

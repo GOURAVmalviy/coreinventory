@@ -1,0 +1,52 @@
+{% extends 'inventory/base.html' %}
+{% block title %}{{ receipt.ref }} — CoreInventory{% endblock %}
+{% block page_title %}{{ receipt.ref }}{% endblock %}
+{% block content %}
+<div class="action-bar">
+  <a href="{% url 'receipt_list' %}" class="btn">← Receipts</a>
+  <span class="pill pill-{{ receipt.status }}" style="margin-left:4px;">{{ receipt.get_status_display }}</span>
+  {% if receipt.status in 'draft,waiting,ready' %}
+  <form method="post" action="{% url 'receipt_validate' receipt.pk %}" style="margin-left:auto;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary" onclick="return confirm('Validate this receipt? Stock will be updated.')">✓ Validate Receipt</button>
+  </form>
+  {% endif %}
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+  <div class="card">
+    <div class="section-title">Receipt Information</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="detail-field"><span class="label">Reference</span><span class="value mono">{{ receipt.ref }}</span></div>
+      <div class="detail-field"><span class="label">Status</span><span class="value"><span class="pill pill-{{ receipt.status }}">{{ receipt.get_status_display }}</span></span></div>
+      <div class="detail-field"><span class="label">Supplier</span><span class="value">{{ receipt.supplier }}</span></div>
+      <div class="detail-field"><span class="label">Warehouse</span><span class="value">{{ receipt.warehouse.name }}</span></div>
+      <div class="detail-field"><span class="label">Scheduled Date</span><span class="value">{{ receipt.scheduled_date|date:"d M Y" }}</span></div>
+      <div class="detail-field"><span class="label">Created By</span><span class="value">{{ receipt.created_by.get_full_name|default:receipt.created_by.username|default:"—" }}</span></div>
+      {% if receipt.validated_at %}
+      <div class="detail-field"><span class="label">Validated At</span><span class="value">{{ receipt.validated_at|date:"d M Y H:i" }}</span></div>
+      {% endif %}
+      {% if receipt.notes %}
+      <div class="detail-field" style="grid-column:1/-1;"><span class="label">Notes</span><span class="value">{{ receipt.notes }}</span></div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title">Products</div>
+    <table style="width:100%;">
+      <thead><tr><th>Product</th><th>SKU</th><th>Expected</th><th>Received</th></tr></thead>
+      <tbody>
+        {% for line in receipt.lines.all %}
+        <tr>
+          <td>{{ line.product.name }}</td>
+          <td class="mono muted">{{ line.product.sku }}</td>
+          <td>{{ line.expected_qty }} {{ line.product.unit_of_measure }}</td>
+          <td>{{ line.received_qty }} {{ line.product.unit_of_measure }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="muted" style="padding:12px;">No products added.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
